@@ -1,15 +1,16 @@
 /* eslint-disable no-unused-vars */
 // src/components/RegisterForm.js
-import  { useState } from 'react';
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-
+import {useAuth} from '../context/AuthContext'
+import axios from "axios";
 const Register = () => {
-    const navigate = useNavigate();
-    const [error, setError] = useState('');
+  const { login } = useAuth();
+  const navigate = useNavigate();
+  const [error, setError] = useState("");
   const [formData, setFormData] = useState({
-    
-    email:'',
-    password: '',
+    email: "",
+    password: "",
   });
 
   const handleChange = (e) => {
@@ -24,29 +25,20 @@ const Register = () => {
 
     // Call the API to log in
     try {
-      const response = await fetch('http://localhost:5001/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        console.log('Login successful:', data);
-
-        // Save the token in localStorage or a secure storage mechanism
-        localStorage.setItem('token', data.token);
-
-        // Redirect or perform any action after successful login
+      const response = await axios.post(
+        "http://localhost:5001/auth/login",
+        formData
+      );
+      if (response.status === 200) {
+        console.log("Login successful:", response.data);
+        login(response.data.user.name)
+        navigate('/chat')
       } else {
-        setError(data.message || 'Error logging in.');
+        setError(response.data.message || "Error logging in.");
       }
     } catch (error) {
-      console.error('Error logging in:', error.message);
-      setError('Error logging in. Please try again.');
+      console.error("Error logging in:", error.message);
+      setError("Error logging in. Please try again.");
     }
   };
 
@@ -54,9 +46,11 @@ const Register = () => {
     <div className="max-w-md mx-auto mt-8">
       <h2 className="text-2xl font-bold mb-4">Login</h2>
       <form onSubmit={handleSubmit} className="space-y-4">
-        
         <div>
-          <label htmlFor="password" className="block text-sm font-medium text-gray-600">
+          <label
+            htmlFor="password"
+            className="block text-sm font-medium text-gray-600"
+          >
             Email:
           </label>
           <input
@@ -70,7 +64,10 @@ const Register = () => {
           />
         </div>
         <div>
-          <label htmlFor="password" className="block text-sm font-medium text-gray-600">
+          <label
+            htmlFor="password"
+            className="block text-sm font-medium text-gray-600"
+          >
             Password:
           </label>
           <input
