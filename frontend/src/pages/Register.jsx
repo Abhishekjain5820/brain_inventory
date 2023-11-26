@@ -1,9 +1,11 @@
-// src/components/RegisterForm.js
+/* eslint-disable no-unused-vars */
 import  { useState } from 'react';
 import { useNavigate } from "react-router-dom";
-
+import axios from 'axios'
 const Register = () => {
     const navigate = useNavigate();
+    const [error, setError] = useState('');
+
   const [formData, setFormData] = useState({
     name: '',
     email:'',
@@ -23,22 +25,15 @@ const Register = () => {
 
     // Call the API to register the user
     try {
-      const response = await fetch('http://localhost:5001/auth/register', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
-      });
+      // Make the registration request using axios
+      const response = await axios.post('http://localhost:5001/auth/register', formData);
 
-      const data = await response.json();
-
-      if (response.ok) {
-        console.log('User registered successfully:', data);
-        navigate("/login")
+      if (response.status === 201) {
+        console.log('Registration successful:', response.data);
+        navigate('/login')
         // Redirect or perform any action after successful registration
       } else {
-        console.error('Error registering user:', data.message);
+        setError(response.data.message || 'Error registering user.');
       }
     } catch (error) {
       console.error('Error registering user:', error.message);

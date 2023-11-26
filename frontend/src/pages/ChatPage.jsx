@@ -1,54 +1,63 @@
-// src/components/ChatPage.js
-import  { useEffect, useState } from 'react';
+/* eslint-disable no-unused-vars */
+import { useState, useEffect } from "react";
+import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 const ChatPage = () => {
   const [users, setUsers] = useState([]);
-  const [error, setError] = useState('');
+  const [error, setError] = useState(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        // Fetch the list of registered users from your API
-        const response = await fetch('http://localhost:5001/auth/users', {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem('token')}`,
-          },
-        });
+        if (!localStorage.getItem("user")) {
+          navigate("/");
+          return;
+        }
 
-        const data = await response.json();
+        // Using Axios to make the API request
+        const response = await axios.get("http://localhost:5001/auth/users");
 
-        if (response.ok) {
+        const data = response.data;
+        console.log(data);
+
+        if (response.status === 200) {
+          
           setUsers(data.users);
         } else {
-          setError(data.message || 'Error fetching users.');
+          setError(data.message || "Error fetching users.");
         }
       } catch (error) {
-        console.error('Error fetching users:', error.message);
-        setError('Error fetching users. Please try again.');
+        console.error("Error fetching users:", error.message);
+        setError("Error fetching users. Please try again.");
       }
     };
 
     fetchUsers();
-  }, []);
+  }, [navigate]); // Include navigate in the dependency array to avoid the missing dependency warning
+
+  const handleUserClick = (userId) => {
+    // Replace '/user-profile' with the desired route and pass any necessary parameters
+    navigate(`/chats/${userId}`);
+  };
 
   return (
-    <div className="max-w-md mx-auto mt-8">
-      <h2 className="text-2xl font-bold mb-4">Chat Page</h2>
-      {error && <div className="text-red-500 mb-4">{error}</div>}
-      {users.length > 0 ? (
-        <ul className="grid grid-cols-1 gap-4">
-          {users.map((user) => (
-            <li
-              key={user._id}
-              className="bg-white p-4 rounded-md shadow-md hover:shadow-lg transition duration-300"
-            >
-              {user.name}
-            </li>
-          ))}
-        </ul>
-      ) : (
-        <p>No registered users available.</p>
-      )}
+    
+    <div className="max-w-md mx-auto my-8 p-4 bg-white rounded-md shadow-md">
+      {error && <p className="text-red-500">{error}</p>}
+      <ul className="divide-y divide-gray-300">
+        <h1 className="text-center font-bold">List Of Users</h1>
+        {users.map((user) => (
+          <li key={user._id} className="py-4" onClick={() => handleUserClick(user._id)}>
+            <div className="flex items-center">
+              <div>
+                <p className="text-lg font-semibold">{user.name}</p>
+              </div>
+            </div>
+          </li>
+        ))}
+      </ul>
     </div>
   );
 };

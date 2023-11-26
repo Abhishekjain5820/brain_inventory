@@ -17,7 +17,7 @@ const jwt=require('jsonwebtoken')
     const newUser = new User({ name, password: hashedPassword, email, phone });
     await newUser.save();
 
-    res.status(201).json({ message: "User registered successfully" });
+    res.status(201).json({ message: "User registered successfully",newUser });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Internal Server Error" });
@@ -43,7 +43,7 @@ const jwt=require('jsonwebtoken')
     const token = jwt.sign({ userId: user._id }, process.env.SECRET_KEY, {
       expiresIn: "1h",
     });
-    res.json({ token });
+    res.json({ token,user:{name:user.name,id:user._id} });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Internal Server Error" });
@@ -62,5 +62,22 @@ const getAllUsersController=async(req,res)=>{
     }
 
 }
+const getUsersController=async(req,res)=>{
+  try {
+    const userId = req.params.userId;
 
-module.exports = { registerController, loginController,getAllUsersController };
+    // Fetch the user from MongoDB based on the provided ID
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    res.json(user);
+  } catch (error) {
+    console.error('Error fetching user:', error.message);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+}
+
+module.exports = { registerController, loginController,getAllUsersController ,getUsersController};
